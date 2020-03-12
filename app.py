@@ -32,13 +32,6 @@ def products():
     product_list = db.get_products()
     return render_template('products.html', page="Products", product_list=product_list)
 
-@app.route('/productdetails')
-def productdetails():
-    code = request.args.get('code', '')
-    product = db.get_product(int(code))
-
-    return render_template('productdetails.html', code=code, product=product)
-
 @app.route('/branches')
 def branches():
 	branch_list = db.get_branches()
@@ -88,9 +81,12 @@ def logout():
     return redirect('/')
 
 # Order Management
-@app.route('/cart')
-def cart():
-    return render_template('cart.html')
+@app.route('/productdetails')
+def productdetails():
+    code = request.args.get('code', '')
+    product = db.get_product(int(code))
+
+    return render_template('productdetails.html', code=code, product=product)
 
 @app.route('/addtocart')
 def addtocart():
@@ -100,14 +96,32 @@ def addtocart():
     # A click to add a product translates to a 
     # quantity of 1 for now
 
-    item["qty"] = 1
+    item["code"]=code
+    item["qty"] = 2
     item["name"] = product["name"]
-    item["subtotal"] = product["price"]*item["qty"]
+    item["price"] = product["price"]
+    item["subtotal"]=int(item["price"])*int(item["qty"])
 
     if(session.get("cart") is None):
         session["cart"]={}
 
     cart = session["cart"]
     cart[code]=item
+    session["cart"]=cart
+    return redirect('/cart')
+
+@app.route('/cart', methods=['GET', 'POST'])
+def cart():
+
+	return render_template('cart.html')
+
+@app.route('/removecartitem')
+def removecartitem():
+    code = request.args.get('code')
+    cart = session["cart"]
+    item = cart[code]
+    
+    del item
+
     session["cart"]=cart
     return redirect('/cart')
